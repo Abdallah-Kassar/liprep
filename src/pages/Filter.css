@@ -1,0 +1,56 @@
+.main-container{
+    display:flex;
+    gap: 10px;
+}
+
+.past-record{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.difficulty-checkbox{
+    
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    width: 12px;
+    aspect-ratio: 1/1 ;
+    border: 1px solid black;
+    border-radius: 4px;
+}
+.all-on{
+    background-color: gray;
+}
+.difficulty-circle{
+    border-radius: 100%;
+    width: 18px;
+    height: 18px;
+    border: 3px solid;
+    margin-inline: 1px;
+
+}
+.difficulty-circle:not(.checked){
+    background-color: white !important;
+}
+
+.filtering-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+
+    min-width: 180px;
+}
+
+.filtering{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.filtering *{
+    margin-block: 10px;
+}

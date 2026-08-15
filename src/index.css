@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@layer base {
+    ul {
+        @apply list-disc pl-5;
+    }
+    ol {
+        @apply list-decimal pl-5;
+    }
+}
+
+*{
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+:root{
+    --border-color: #e5e5e5;
+    --blue: #243a5c;
+    --gray: #7790a5;
+}
+body{
+    margin-inline: 60px;
+    color: var(--blue);
+    font-weight: bold;
+}
