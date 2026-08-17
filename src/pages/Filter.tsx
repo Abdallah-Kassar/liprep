@@ -17,8 +17,8 @@ const sampleData = {
 function Filter() {
   const navigate = useNavigate();
 
-  const [difficulty, setDifficulty] = useState(new Set([5, 6]));
-  const [solvedStatus, setSolvedStatus] = useState("unsolved");
+  const [difficulty, setDifficulty] = useState(new Set([2,3,4,5, 6,7]));
+  const [solvedStatus, setSolvedStatus] = useState("all");
   const [selected, setSelected] = useState(new Set());
   function editDifficulty(numbers: number[], forced = false) {
     const nextDifficulty = new Set(difficulty);
@@ -36,10 +36,8 @@ function Filter() {
         if (nextDifficulty.has(number)) nextDifficulty.delete(number);
         else nextDifficulty.add(number);
       } else {
-        console.log("forced");
         if (allOn) {
           nextDifficulty.delete(number);
-          console.log("allon");
         } else nextDifficulty.add(number);
       }
     }
@@ -106,13 +104,15 @@ function Filter() {
         <TopicSelection
           selected={selected}
           setSelected={setSelected}
+          difficulty={difficulty}
+          solvedStatus={solvedStatus}
         ></TopicSelection>
         <div className="filtering-container">
           <div className="filtering">
             <h2>Difficulty</h2>
             <h2>solved status</h2>
             <div style={{ textTransform: "capitalize" }}>
-              {["all", "solved", "unsolved"].map((ele) => {
+              {["all", "unsolved"].map((ele) => {
                 return (
                   <label
                     key={ele}

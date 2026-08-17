@@ -3,14 +3,14 @@ import "./TopicSelection.css"
 import {topicTree} from "./TopicTree"
 import { getNumberRemainingPerTopic } from "@/db";
 
-export default function TopicSelection({selected, setSelected}){
+export default function TopicSelection({selected, setSelected, difficulty, solvedStatus}){
     const [recRemainingQuestions, setRecRemainingQuestions] = useState<Record<string, number>>({});
 
     useEffect(() => {
         let cancelled = false;
 
         async function load() {
-            const temp = await getNumberRemainingPerTopic();
+            const temp = await getNumberRemainingPerTopic(difficulty, solvedStatus);
 
             if (!cancelled) {
                 setRecRemainingQuestions(temp);
@@ -22,7 +22,7 @@ export default function TopicSelection({selected, setSelected}){
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [difficulty, solvedStatus]);
 
     function toggleOne(topicName:string){
         const nextSelected = new Set(selected);

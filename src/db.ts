@@ -5,12 +5,58 @@ const db = new Dexie("QuestionsDB") as Dexie & {
 };
 
 const progressDb = new Dexie("ProgressDB") as Dexie &{
-    progressTable:EntityTable<object>
+    progressTable:EntityTable<object>, 
+    daysProgress:EntityTable<object>
 }
 
 db.version(1).stores({QDB:"questionId,score_band_range_cd,skill_cd,[skill_cd+score_band_range_cd]"});
-progressDb.version(1).stores({progressTable: "questionId, skill_cd"});
+progressDb.version(1).stores({progressTable: "questionId, skill_cd, [skill_cd+score_band_range_cd]", daysProgress:"date"});
 //progressDb.progressTable.add({questionId:"test", skill_cd:"WIC"})
+
+function getToday() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+async function checkNewDay(){
+    const today = getToday();
+
+    let current = await progressDb.daysProgress.get("current");
+
+    if (!current) {
+        current = {
+        id: "current",
+        date: today,
+        questionsSolved: 0
+        };
+
+        await progressDb.daysProgress.put(current);
+
+        return current;
+    }
+
+    if (current.date === today) {
+        return current;
+    }
+
+    await progressDb.daysProgress.put({
+        date: current.date,
+        questionsSolved: current.questionsSolved
+    });
+
+    const newCurrent = {
+        date: "current",
+        questionsSolved: 0
+    };
+
+    await db.currentStats.put(newCurrent);
+
+    return newCurrent;
+}
 
 async function handleJSONUpload(event){
     try{
@@ -47,10 +93,6 @@ async function getQuestions() {
         for(const question of questionsArray){
             if(filters.solvedStatus == "unsolved"){
                 if(progressSet.has(question.questionId) == false){
-                    filteredQuestionsArray.push(question)
-                }
-            }else{ //filters.solvedStatus == solved
-                if(progressSet.has(question.questionId) == true){
                     filteredQuestionsArray.push(question)
                 }
             }
@@ -90,11 +132,11 @@ async function getQuestions() {
     }
 */
 
-async function getNumberSolvedPerTopic(){
+async function getNumberSolvedPerTopic(difficulty){
     const rec: Record<string, number> = {};
     await Promise.all(
         Object.entries(topicCodes).map(async ([full_name, code_name]) =>{
-            const n = await progressDb.progressTable.where("skill_cd").equals(code_name).count();
+            const n = await progressDb.progressTable.where("[skill_cd+score_band_range_cd]").anyOf(difficulty.map((diff) => [code_name, diff])).count();
             rec[full_name] = n;
         })  
         
@@ -102,13 +144,17 @@ async function getNumberSolvedPerTopic(){
     return rec;
 }
 
-async function getNumberRemainingPerTopic(){
-    const rec: Record<string, number> = await getNumberSolvedPerTopic();
-    
+async function getNumberRemainingPerTopic(difficulty, solvedStatus){
+    const a:number[] = [];
+    for(const ele of difficulty){
+        a.push(ele);
+    }
+    const rec: Record<string, number> = await getNumberSolvedPerTopic(a);
     await Promise.all(
         Object.entries(topicCodes).map(async ([full_name, code_name]) =>{
-            const n = await db.QDB.where("skill_cd").equals(code_name).count();
-            rec[full_name] = n - rec[full_name];
+            const n = await db.QDB.where("[skill_cd+score_band_range_cd]").anyOf(a.map((diff) => [code_name, diff])).count();
+            if(solvedStatus == "unsolved")rec[full_name] = n - rec[full_name];
+            else rec[full_name] = n; // all
         })
 
     )
